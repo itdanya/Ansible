@@ -1,0 +1,41 @@
+---
+
+- hosts: all
+  gather_facts: False
+  become: yes  
+  become_method: su
+  become_user: root
+
+  tasks:
+    - name: is the server alive ?
+      ping:
+
+    - name: Update all packages
+      apt:
+         update_cache: yes
+
+    - name: Upgrade all packages
+      apt:
+         upgrade: dist
+
+    - name: Install sudo in *deb based OS
+      apt:
+          name: sudo
+    
+    - name: Create ansible user
+      user:
+          name: ansible
+          shell: /bin/bash
+          home: /home/ansible
+
+    - name: Copy ssh pubkey to home directory
+      authorized_key:
+          user: ansible
+          state: present
+          key: "{{ lookup('file', lookup('env', 'HOME') + '/.ssh/id_rsa.pub') }}"
+
+    - name: Adding ansible user to sudoers
+      lineinfile:
+          dest: /etc/sudoers
+          line: "ansible ALL=(ALL)      NOPASSWD: ALL"
+          validate: '/usr/sbin/visudo -cf %s'
