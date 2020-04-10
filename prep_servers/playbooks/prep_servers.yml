@@ -10,14 +10,6 @@
     - name: is the server alive ?
       ping:
 
-    - name: Update all packages
-      apt:
-         update_cache: yes
-
-    - name: Upgrade all packages
-      apt:
-         upgrade: dist
-
     - name: Install sudo in *deb based OS
       apt:
           name: sudo
