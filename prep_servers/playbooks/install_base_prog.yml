@@ -1,0 +1,14 @@
+---
+- name: install basic programms
+  hosts: all
+  become: yes
+  gather_facts: no
+
+  tasks:
+
+    - name: check the viability of servers
+      ping:
+
+    - name: install programms
+      apt:
+        name: ['mc', 'htop', 'vim', 'net-tools', 'bind9utils', 'ntp']
