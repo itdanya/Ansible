@@ -1,0 +1,97 @@
+---
+# tasks file for zabbix-server
+
+- name: ping.... is my Server responsible?
+  ping:
+
+- name: update packages
+  dnf: name=sos enablerepo='epel, ol7_latest' update_cache=yes
+
+- name: update system
+  dnf: name='*' state=latest
+
+- name: upload zabbix
+  dnf: name=https://repo.zabbix.com/zabbix/4.4/rhel/8/x86_64/zabbix-release-4.4-1.el8.noarch.rpm state=latest
+
+- name: remirepo for php
+  dnf: name=http://rpms.remirepo.net/enterprise/remi-release-8.rpm state=present
+
+- name: install base soft
+  dnf:
+    name: ['htop', 'mc', 'wget', 'vim', 'dnf-utils', 'net-tools', 'bind-utils', 'network-scripts', 'chrony']
+    state: latest
+
+- name: install nginx rpm from remote repo
+  dnf: name=http://nginx.org/packages/centos/8/x86_64/RPMS/nginx-1.16.1-1.el8.ngx.x86_64.rpm state=present
+
+- name: install php74 and extentions
+  dnf:
+    name: ['php74', 'php-fpm', 'php-cli', 'php-gd', 'php-ldap', 'php-odbc', 'php-pdo', 'php-pear', 'php-xml', 'php-xmlrpc', 'php-mbstring', 'php-snmp',
+   'php-soap', 'php-bcmath']
+    state: latest
+
+- name: install mariadb
+  dnf:
+    name: ['mariadb-server', 'mariadb-gssapi-server']
+    state: latest
+
+- name: install zabbix-server
+  dnf:
+    name: ['zabbix-server-mysql', 'zabbix-web-mysql']
+    state: latest
+
+- name: disable SElinux
+  selinux: state=disabled
+
+#- name: stop SElinux
+ # command: setenforce 0
+
+- name: stop & disabled firewalld
+  service: name=firewalld state=stopped enabled=false
+
+- name: enable & start chrony
+  service: name=chronyd state=started enabled=yes
+
+- name: start & enable nginx
+  service: name=nginx state=started enabled=yes
+
+- name: start & enable php-fpm
+  service: name=php-fpm state=started enabled=yes
+
+- name: start & enable mariadb
+  service: name=mariadb state=started enabled=yes
+
+- name: start & enable zabbix-server
+  service: name=zabbix-server state=started enabled=yes
+
+- name: change permissions to the dir session to nginx:nginx
+  file: dest={{ dest_php_session }} state=directory recurse=yes owner=nginx group=nginx
+
+- name: change permission on the dir web fo nginx:nginx
+  file: dest={{ dest_web }} state=directory recurse=yes owner=nginx group=nginx
+
+- name: copy nginx config
+  copy: src=default.conf dest={{ dest_nginx }}  owner=root group=root mode='0644'
+
+
+- name: copy chrony config file
+  copy: src=chrony.conf dest={{ dest_chrony }} owner=root group=root mode='0644'
+
+- name: copy config file for php-fpm
+  copy: src=www.conf dest={{ dest_php_fpm }} owner=root group=root mode='0644'
+
+- name: copy config for php-fpm use nginx
+  copy: src=zabbix.conf dest={{ dest_php_fpm }} owner=root group=root mode='0644'
+
+- name: copy config file for mariadb
+  copy: src=mariadb-server.cnf dest={{ dest_mariadb }} owner=root group=root mode='0644'
+
+- name: copy zabbix-server config
+  copy: src=zabbix_server.conf dest={{ dest_zabbix }} owner=root group=root mode='0644'
+
+- name: restart services
+  service: name={{ item }} state=restarted
+  loop:
+    - php-fpm
+    - nginx
+    - mariadb

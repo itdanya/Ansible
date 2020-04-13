@@ -1,0 +1,11 @@
+---
+# defaults file for zabbix-server
+
+dest_chrony      : /etc
+dest_php_fpm     : /etc/php-fpm.d/
+dest_mariadb     : /etc/my.cnf.d/
+dest_zabbix      : /etc/zabbix/
+dest_zabbix_pfpm : /etc/php-fpm.d/
+dest_nginx       : /etc/nginx/conf.d/
+dest_php_session : /var/lib/php/session/
+dest_web         : /etc/zabbix/web/

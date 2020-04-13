@@ -1,0 +1,8 @@
+---
+
+- name: Intall updates and packages on Zabbix-Server
+  hosts: zabbix
+  become: yes
+
+  roles:
+    - zabbix-server
