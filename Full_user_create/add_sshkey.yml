@@ -1,0 +1,45 @@
+---
+
+- name: Full user create
+  hosts: all
+  become: yes
+  gather_facts: yes
+
+  vars_files:
+    - ./vars/general.yml
+
+  tasks:
+
+     - name: Create user and home folder
+       ansible.builtin.user:
+        name: "{{ username }}" 
+        shell: /bin/bash
+        createhome: yes
+        home: /home/{{ username }}
+     - name: Add user to sudoers
+       lineinfile:
+        path: /etc/sudoers.d/{{ username }}
+        line: '{{ username }} ALL=(ALL) NOPASSWD: ALL'
+        state: present
+        mode: 0600
+        create: yes
+        validate: 'visudo -cf %s'
+     - name: Create .ssh folder
+       file:
+        path: ~{{ username }}/.ssh
+        state: directory
+        owner: "{{ username }}"
+        group: "{{ username }}"
+        mode: 0744  
+     - name: Set authorized key from file
+       authorized_key:
+        user: "{{ username }}"
+        state: present
+        key: "{{ lookup('file', '{{ username }}.pub') }}"
+
+      
+  
+
+
+
+
